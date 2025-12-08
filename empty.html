@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Отложить тикет</title>
+  <style>
+    body{margin:0;padding:20px;background:transparent;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+    button{width:100%;padding:14px;font-size:17px;border-radius:6px;border:none;font-weight:600;
+           background:#2980b9;color:white;cursor:pointer}
+    button:disabled{background:#95a5a6;cursor:not-allowed}
+    .msg{margin-top:12px;text-align:center;font-size:16px;font-weight:700}
+    .ok{color:#27ae60}
+    .no{color:#e74c3c}
+  </style>
+</head>
+<body>
+
+  <button id="btn">Отложить тикет</button>
+  <div id="st" class="msg"></div>
+
+  <script>
+    const u = new URLSearchParams(location.search);
+    const tid = u.get('ticket_id');
+
+    const btn = document.getElementById('btn');
+    const status = document.getElementById('st');
+
+    let inProgress = false;
+
+    btn.onclick = async () => {
+      if (inProgress) return;
+      inProgress = true;
+
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
+      status.innerHTML = '';
+
+      try {
+        const r = await fetch('https://api.usedesk.ru/update/ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            api_token: 'd1be8720080dd84da7b1f33604eda8daf309b78e',
+            ticket_id: tid,
+            field_id: '27722',
+            field_value: 1
+          })
+        });
+
+        let data = null;
+        try { data = await r.clone().json(); } catch(e) {}
+
+        if (!r.ok || (data && (data.error || data.success === false))) {
+          throw new Error();
+        }
+
+        // Успех
+        btn.textContent = 'Готово';
+        btn.style.background = '#1e8449';
+        status.innerHTML = '<span class="ok">Тикет отложен</span>';
+
+        // Кнопка остаётся отключённой до перезагрузки
+      } catch {
+        status.innerHTML = '<span class="no">Ошибка сети или сервера</span>';
+        btn.disabled = false;
+        btn.textContent = 'Отложить тикет';
+        inProgress = false;
+      }
+    };
+  </script>
+
+</body>
+</html>
+
