@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Управление откладыванием</title>
+  <title>Управление отложенным тикетом</title>
   <style>
     body {
       margin: 0;
       padding: 20px;
       background: transparent;
-      font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     button {
       width: 100%;
       padding: 14px;
-      font-size: 17px;
+      font-size: 16px;
       border-radius: 6px;
       border: none;
       font-weight: 600;
@@ -23,10 +23,13 @@
       margin-bottom: 10px;
     }
 
-    .postpone  { background:#2980b9; color:white; }   /* Синяя кнопка */
-    .unpostpone{ background:#c0392b; color:white; }   /* Красная кнопка */
+    .blue { background: #2980b9; color: white; }
+    .red  { background: #c0392b; color: white; }
 
-    button:disabled { background:#95a5a6; cursor:not-allowed; }
+    button:disabled {
+      background: #95a5a6 !important;
+      cursor: not-allowed;
+    }
 
     .msg {
       margin-top: 12px;
@@ -34,24 +37,25 @@
       font-size: 16px;
       font-weight: 700;
     }
-    .ok { color:#27ae60 }
-    .no { color:#e74c3c }
+
+    .ok { color: #27ae60; }
+    .no { color: #e74c3c; }
   </style>
 </head>
 <body>
 
-  <button id="btn_on"  class="postpone">Отложить тикет</button>
-  <button id="btn_off" class="unpostpone">Убрать из отложенного</button>
+  <button id="btnOn"  class="blue">Отложить тикет</button>
+  <button id="btnOff" class="red">Убрать из отложенного</button>
 
   <div id="st" class="msg"></div>
 
   <script>
     const u = new URLSearchParams(location.search);
-    const tid = u.get('ticket_id');
+    const tid = u.get("ticket_id");
 
-    const btnOn  = document.getElementById('btn_on');
-    const btnOff = document.getElementById('btn_off');
-    const status = document.getElementById('st');
+    const btnOn  = document.getElementById("btnOn");
+    const btnOff = document.getElementById("btnOff");
+    const status = document.getElementById("st");
 
     let busy = false;
 
@@ -71,32 +75,40 @@
             api_token: "d1be8720080dd84da7b1f33604eda8daf309b78e",
             ticket_id: tid,
             field_id: "27722",
-            field_value: value
+            field_value: value   // true or false
           })
         });
 
         let json = null;
-        try { json = await r.clone().json(); } catch(e){}
+        try { json = await r.clone().json(); } catch {}
 
         if (!r.ok || (json && (json.error || json.success === false))) {
           throw new Error();
         }
 
+        // Успех
         btn.textContent = "Готово";
         btn.style.background = "#1e8449";
-        status.innerHTML = `<span class="ok">Тикет ${value === 1 ? "отложен" : "убран"}</span>`;
+        status.innerHTML = `<span class="ok">Тикет ${value === true ? "отложен" : "убран из отложенных"}</span>`;
+
+        // Вторую кнопку тоже отключаем
+        btnOn.disabled = true;
+        btnOff.disabled = true;
 
       } catch {
         status.innerHTML = '<span class="no">Ошибка сети или сервера</span>';
         btn.disabled = false;
-        btn.textContent = value === 1 ? "Отложить тикет" : "Убрать из отложенного";
+        btn.textContent = value === true ? "Отложить тикет" : "Убрать из отложенного";
         busy = false;
       }
     }
 
-    btnOn.onclick  = () => updateTicket(true, btnOn);
+    // Вызовы
+    btnOn.onclick  = () => updateTicket(true,  btnOn);
     btnOff.onclick = () => updateTicket(false, btnOff);
+
   </script>
 
 </body>
 </html>
+
