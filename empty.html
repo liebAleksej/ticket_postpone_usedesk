@@ -68,37 +68,36 @@
       status.innerHTML = "";
 
       try {
-        const r = await fetch("https://api.usedesk.ru/update/ticket", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            api_token: "d1be8720080dd84da7b1f33604eda8daf309b78e",
-            ticket_id: tid,
-            field_id: "27722",
-            field_value: value   // true or false
-          })
-        });
+  const r = await fetch("https://api.usedesk.ru/update/ticket", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      api_token: "d1be8720080dd84da7b1f33604eda8daf309b78e",
+      ticket_id: tid,
+      field_id: "27722",
+      field_value: value
+    })
+  });
 
-        let json = null;
-        try { json = await r.clone().json(); } catch {}
+  let json = null;
+  try { json = await r.clone().json(); } catch {}
 
-        if (!r.ok || (json && (json.error || json.success === false))) {
-          throw new Error();
-        }
+  if (!r.ok || (json && (json.error || json.success === false))) {
+    throw new Error();
+  }
 
-        // Успех
-        btn.textContent = "Готово";
-        btn.style.background = "#1e8449";
-        // Вторую кнопку тоже отключаем
-        btnOn.disabled = true;
-        btnOff.disabled = true;
+  // Успех
+  btn.textContent = "Готово";
+  btn.style.background = "#1e8449";
 
-      } catch {
-        status.innerHTML = '<span class="no">Ошибка сети или сервера</span>';
-        btn.disabled = false;
-        btn.textContent = value === true ? "Отложить тикет" : "Убрать из отложенного";
-        busy = false;
-      }
+  busy = false; // ← возвращаем возможность нажать другую кнопку
+
+} catch {
+  status.innerHTML = '<span class="no">Ошибка сети или сервера</span>';
+  btn.disabled = false;
+  btn.textContent = value === true ? "Отложить тикет" : "Убрать из отложенного";
+  busy = false;
+}
     }
 
     // Вызовы
